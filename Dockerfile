@@ -24,7 +24,6 @@ RUN \
 	libssl-dev \
 	libevent-dev \
 	bsdmainutils \
-	python3 \
 #Qt5 dependency
 	libqt5gui5 \
 	libqt5core5a \
@@ -77,3 +76,6 @@ ENV	APP_NAME="RavencoinWallet" \
 
 # Define mountable directories.
 VOLUME ["/storage"]
+
+# Expose port
+EXPOSE 8767

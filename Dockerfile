@@ -1,21 +1,21 @@
 # Pull base image.
 FROM jlesage/baseimage-gui:ubuntu-16.04
 
-# Define software download URLs.
-ARG RAVENCOIN_URL=https://github.com/RavenProject/Ravencoin
+# Define download URLs.
+ARG RAVENCOIN_VERSION=2.2.2
+ARG RAVENCOIN_URL=https://github.com/RavenProject/Ravencoin/archive/v${RAVENCOIN_VERSION}.tar.gz
 
 # Define working directory.
 WORKDIR /tmp
 
 ### Install RavenCoin
 RUN \
-	apt-get update && \
-	apt-get install -y \
-	software-properties-common && \
+	apt-get update && apt-get install -y \
+	software-properties-common \
+	&& \
 	add-apt-repository ppa:bitcoin/bitcoin && \
-	apt-get update && \
-#dependency	
-	apt-get install -y \
+#dependency
+	apt-get update && apt-get install -y \
 	build-essential \
 	libtool \
 	autotools-dev \
@@ -34,7 +34,7 @@ RUN \
 	protobuf-compiler \
 #ZMQ dependency
 	libzmq3-dev \
-#libqrencode dependency	
+#libqrencode dependency
 	libqrencode-dev \
 #libboost dependency
 	libboost-system-dev \
@@ -46,11 +46,13 @@ RUN \
 #BerkeleyDB dependency
 	libdb4.8-dev \
 	libdb4.8++-dev \
-#git dependency
-	git && \
+#curl dependency
+	curl \
+	&& \
 echo "**** Downloading ravencoin... ****" && \
-	git clone $RAVENCOIN_URL /ravencoin && \
-	cd /ravencoin && \
+	mkdir ravencoin && \
+	curl -sS -L ${RAVENCOIN_URL} | tar -xz --strip 1 -C ravencoin && \
+	cd ravencoin && \
 	./autogen.sh && \
 	./configure --enable-cxx --disable-shared --with-gui --with-pic CXXFLAGS="-fPIC -O2" CPPFLAGS="-fPIC -O2" && \
 	make && \
@@ -60,19 +62,17 @@ echo "**** cleanup ****" && \
 	apt-get clean -y && \
 	apt-get autoremove -y && \
 	rm -rf \
-		/ravencoin \
 		/tmp/* \
 		/var/lib/apt/lists/* \
-		/var/tmp/*
-		
-# Add files.
+		/var/tmp/* \
+		/tmp/.[!.]* \
+		/etc/login.defs
+	
+# Add files
 COPY rootfs/ /
 
 # Set environment variables.
-ENV	APP_NAME="RavencoinWallet" \
-	USER_ID=99 \
-	GROUP_ID=100 \
-	UMASK=0
+ENV	APP_NAME="RavencoinWallet"
 
 # Define mountable directories.
 VOLUME ["/storage"]

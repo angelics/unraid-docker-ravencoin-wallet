@@ -66,11 +66,16 @@ RUN \
 	./configure --enable-cxx \
 				--disable-shared \
 				--with-gui \
+				--disable-tests \
+				--disable-bench \
 				--with-pic CXXFLAGS="-fPIC -O2" CPPFLAGS="-fPIC -O2" \
 				&& \
-	make && \
+	make -j4 && \
 	make install && \
-	cd / && \
+	strip --strip-unneeded /usr/local/bin/ravend && \
+	strip --strip-unneeded /usr/local/bin/raven-qt && \
+	strip --strip-unneeded /usr/local/lib/libravenconsensus.a && \
+	strip --strip-unneeded /usr/local/bin/raven-cli && \
     echo "Remove unused packages..." && \
     del-pkg build-dependencies && \
     apt-get purge --auto-remove xz-utils -y && \
@@ -92,4 +97,4 @@ ENV	APP_NAME="RavencoinWallet"
 VOLUME ["/storage"]
 
 # Expose port
-EXPOSE 8767
+EXPOSE 8767 18770 8766 18766 

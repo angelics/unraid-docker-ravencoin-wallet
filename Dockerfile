@@ -17,6 +17,7 @@ RUN \
 		libqt5network5 \
 		libqt5widgets5 \
 		libzmq5 \
+		libboost-filesystem1.58.0 \
 		libboost-program-options1.58.0 \
 		libboost-thread1.58.0 \
 		libboost-chrono1.58.0 \
@@ -35,7 +36,7 @@ RUN \
     install_app_icon.sh "$APP_ICON_URL"
 	
 # Define download URLs.
-ARG RAVENCOIN_VERSION=2.4.0
+ARG RAVENCOIN_VERSION=2.5.0
 ARG RAVENCOIN_URL=https://github.com/RavenProject/Ravencoin/archive/v${RAVENCOIN_VERSION}.tar.gz
 
 RUN \

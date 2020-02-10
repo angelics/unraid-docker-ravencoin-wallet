@@ -36,7 +36,7 @@ RUN \
     install_app_icon.sh "$APP_ICON_URL"
 	
 # Define download URLs.
-ARG RAVENCOIN_VERSION=3.3.2.0
+ARG RAVENCOIN_VERSION=3.3.2
 ARG RAVENCOIN_URL=https://github.com/RavenProject/Ravencoin/archive/v${RAVENCOIN_VERSION}.tar.gz
 
 RUN \

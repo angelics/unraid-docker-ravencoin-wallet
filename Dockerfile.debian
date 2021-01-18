@@ -1,0 +1,113 @@
+# Pull base image.
+FROM jlesage/baseimage-gui:debian-8
+
+# Define download URLs.
+ARG RAVENCOIN_VERSION=2.2.2
+ARG RAVENCOIN_URL=https://github.com/RavenProject/Ravencoin/archive/v${RAVENCOIN_VERSION}.tar.gz
+ARG BERKELEYDB_URL=https://raw.githubusercontent.com/bitcoin/bitcoin/master/contrib/install_db4.sh
+
+# Define working directory.
+WORKDIR /tmp
+
+### Install RavenCoin
+RUN \
+	echo "download & install berkeley..." && \
+	add-pkg --virtual build-dependencies \
+		wget \
+		ca-certificates \
+		patch \
+		g++ \
+		libtool \
+		make \
+		&& \
+	wget ${BERKELEYDB_URL} && \
+	chmod +x install_db4.sh && \
+	./install_db4.sh /opt && \
+	del-pkg build-dependencies
+RUN \	
+	#echo "Adding raven-qt dependencies..." && \
+	#add-pkg \
+		#libqt5network5 \
+		#libqt5widgets5 \
+		#libzmq5 \
+		#libboost-program-options1.58.0 \
+		#libboost-thread1.58.0 \
+		#libboost-chrono1.58.0 \
+		#libqrencode3 \
+		#libprotobuf9v5 \
+		#libdb4.8++ \
+		#libevent-pthreads-2.0-5 \
+		#libevent-2.0-5 \
+		#&& \
+	echo "Make install RavencoinWallet..." && \
+	add-pkg --virtual build-dependencies \
+		build-essential \
+		libtool \
+		automake \
+		pkg-config \
+		libevent-dev \
+		bsdmainutils \
+		python3 \
+		qttools5-dev \
+		qttools5-dev-tools \
+		libprotobuf-dev \
+		protobuf-compiler \
+		libzmq3-dev \
+		libqrencode-dev \
+		libboost-system-dev \
+		libboost-filesystem-dev \
+		libboost-chrono-dev \
+		libboost-program-options-dev \
+		libboost-test-dev \
+		libboost-thread-dev \
+		curl \
+		ca-certificates \
+		g++ \
+		libssl-dev \
+		make \
+		&& \
+	mkdir ravencoin && \
+	echo "Download RavencoinWallet..." && \
+	curl -sS -L ${RAVENCOIN_URL} | tar -xz --strip 1 -C ravencoin && \
+	cd ravencoin && \
+	./autogen.sh && \
+	echo "List all configure..." && \
+	./configure LDFLAGS="-L/opt/db4/lib/" CPPFLAGS="-I/opt/db4/include/" \
+				--enable-cxx \
+				--disable-shared \
+				--with-gui=qt5 \
+				--disable-gui-tests \
+				--disable-tests \
+				--disable-bench \
+				--enable-reduce-exports \
+				--with-pic CXXFLAGS="-fPIC -O2" \
+				&& \
+	make -j2 && \
+	make install && \
+	#strip --strip-unneeded /usr/local/bin/ravend && \
+	#strip --strip-unneeded /usr/local/bin/raven-qt && \
+	#strip --strip-unneeded /usr/local/lib/libravenconsensus.a && \
+	#strip --strip-unneeded /usr/local/bin/raven-cli && \
+    echo "Remove unused packages..." && \
+    del-pkg build-dependencies && \
+    apt-get purge --auto-remove xz-utils -y && \
+	rm -rf /tmp/* /tmp/.[!.]* /opt/* && \
+    # Maximize only the main window.
+    sed-patch 's/<application type="normal">/<application type="normal" title="Raven Core - Wallet">/' \
+        /etc/xdg/openbox/rc.xml && \
+	# Generate and install favicons.
+    APP_ICON_URL=https://raw.githubusercontent.com/angelics/unraid-docker-ravencoin-wallet/master/icon.png && \
+    install_app_icon.sh "$APP_ICON_URL"
+RUN ldd /usr/local/bin/raven-qt
+	
+# Add files
+COPY rootfs/ /
+
+# Set environment variables.
+ENV	APP_NAME="RavencoinWallet"
+
+# Define mountable directories.
+VOLUME ["/storage"]
+
+# Expose port
+EXPOSE 8767 18770 8766 18766 

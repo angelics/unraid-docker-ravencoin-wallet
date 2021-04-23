@@ -1,5 +1,5 @@
 # Pull base image.
-FROM jlesage/baseimage-gui:ubuntu-16.04
+FROM jlesage/baseimage-gui:ubuntu-18.04
 
 # Define working directory.
 WORKDIR /tmp
@@ -13,20 +13,23 @@ RUN \
     del-pkg build-dependencies && \
 	echo "Adding raven-qt dependencies..." && \
 	add-pkg \
-		tzdata \
+		libzmq5 \
+		libboost-system1.65.1 \
+		libboost-filesystem1.65.1 \
+		libboost-program-options1.65.1 \
+		libboost-thread1.65.1 \
+		libboost-chrono1.65.1 \
 		libqt5network5 \
 		libqt5widgets5 \
-		libzmq5 \
-		libboost-filesystem1.58.0 \
-		libboost-program-options1.58.0 \
-		libboost-thread1.58.0 \
-		libboost-chrono1.58.0 \
+		libqt5gui5 \
+		libqt5dbus5 \
+		libqt5core5a \
 		libqrencode3 \
-		libprotobuf9v5 \
+		libprotobuf10 \
 		libdb4.8++ \
-		libevent-pthreads-2.0-5 \
-		libevent-2.0-5 \
-		&& \
+		libevent-pthreads-2.1-6 \
+		libevent-2.1-6 \
+		libminiupnpc10 && \
 	rm -rf /tmp/* /tmp/.[!.]* && \
     # Maximize only the main window.
     sed-patch 's/<application type="normal">/<application type="normal" title="Raven Core - Wallet">/' \
@@ -36,7 +39,7 @@ RUN \
     install_app_icon.sh "$APP_ICON_URL"
 	
 # Define download URLs.
-ARG RAVENCOIN_VERSION=4.3.1
+ARG RAVENCOIN_VERSION=4.3.2.1
 ARG RAVENCOIN_URL=https://github.com/RavenProject/Ravencoin/archive/v${RAVENCOIN_VERSION}.tar.gz
 
 RUN \
@@ -67,6 +70,7 @@ RUN \
 		libboost-thread-dev \
 		curl \
 		ca-certificates \
+		libminiupnpc-dev \
 		&& \
 	mkdir ravencoin && \
 	echo "Download RavencoinWallet..." && \
@@ -87,8 +91,7 @@ RUN \
 	strip --strip-unneeded /usr/local/lib/libravenconsensus.a && \
 	strip --strip-unneeded /usr/local/bin/raven-cli && \
     echo "Remove unused packages..." && \
-    del-pkg build-dependencies && \
-    apt-get purge --auto-remove xz-utils -y && \
+    del-pkg build-dependencies xz-utils && \
 	rm -rf /tmp/* /tmp/.[!.]*
 
 # Add files

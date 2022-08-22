@@ -14,16 +14,6 @@ mkdir -p /storage
 log "generating machine-id..."
 cat /proc/sys/kernel/random/uuid | tr -d '-' > /etc/machine-id
 
-# Adding bootstrap.
-if [ "${BOOTSTRAP:-0}" -eq 1 ]; then
-    log "adding bootstrap..."
-	add-pkg wget ca-certificates 2>&1 | sed "s/^/[cont-init.d] $(basename $0): /"
-	mkdir -p /storage/.raven 2>&1 | sed "s/^/[cont-init.d] $(basename $0): /"
-	wget --progress=bar:force:noscroll http://bootstrap.ravenland.org/blockchain.tar.gz 2>&1 | sed "s/^/[cont-init.d] $(basename $0): /"
-	tar -xzf blockchain.tar.gz -C /storage/.raven 2>&1 | sed "s/^/[cont-init.d] $(basename $0): /"
-	rm blockchain.tar.gz 2>&1 | sed "s/^/[cont-init.d] $(basename $0): /"
-fi
-
 # check conf
 grep -q "server=1" /storage/.raven/raven.conf || echo 'server=1' >> /storage/.raven/raven.conf
 

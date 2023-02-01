@@ -33,7 +33,7 @@ is_rvn_running() {
 }
 
 start_rvn() {
-	exec raven-qt
+	exec raven-qt > /config/log/raven_out.log 2> /config/log/raven_err.log
 }
 
 kill_rvn() {

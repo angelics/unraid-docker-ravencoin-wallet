@@ -1,8 +1,13 @@
 # Pull base image.
-FROM jlesage/baseimage-gui:ubuntu-18.04
+FROM jlesage/baseimage-gui:ubuntu-18.04-v4
 
 # Define working directory.
 WORKDIR /tmp
+
+RUN\
+	# Generate and install favicons.
+    APP_ICON_URL=https://raw.githubusercontent.com/angelics/unraid-docker-ravencoin-wallet/master/icon.png && \
+    install_app_icon.sh "$APP_ICON_URL"
 
 RUN \
 	echo "Adding bitcoin repository..." && \
@@ -30,13 +35,7 @@ RUN \
 		libevent-pthreads-2.1-6 \
 		libevent-2.1-6 \
 		libminiupnpc10 && \
-	rm -rf /tmp/* /tmp/.[!.]* && \
-    # Maximize only the main window.
-    sed-patch 's/<application type="normal">/<application type="normal" title="Raven Core - Wallet">/' \
-        /etc/xdg/openbox/rc.xml && \
-	# Generate and install favicons.
-    APP_ICON_URL=https://raw.githubusercontent.com/angelics/unraid-docker-ravencoin-wallet/master/icon.png && \
-    install_app_icon.sh "$APP_ICON_URL"
+	rm -rf /tmp/* /tmp/.[!.]*
 	
 # Define download URLs.
 ARG RAVENCOIN_VERSION=4.6.1
@@ -73,7 +72,7 @@ RUN \
 		libminiupnpc-dev \
 		&& \
 	mkdir ravencoin && \
-	echo "Download RavencoinWallet..." && \
+	echo "Download RavencoinWallet $RAVENCOIN_VERSION..." && \
 	curl -sS -L ${RAVENCOIN_URL} | tar -xz --strip 1 -C ravencoin && \
 	cd ravencoin && \
 	./autogen.sh && \
@@ -98,8 +97,10 @@ RUN \
 COPY rootfs/ /
 
 # Set environment variables.
-ENV	APP_NAME="RavencoinWallet"
-
+RUN \
+    set-cont-env APP_NAME "RavencoinWallet" && \
+    set-cont-env APP_VERSION "$RAVENCOIN_VERSION"
+	
 # Define mountable directories.
 VOLUME ["/storage"]
 
